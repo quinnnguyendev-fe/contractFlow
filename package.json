@@ -1,0 +1,12 @@
+{
+  "name": "contractflow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build"
+  },
+  "packageManager": "pnpm@10.34.9"
+}

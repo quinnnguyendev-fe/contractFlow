@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+*.tsbuildinfo
+next-env.d.ts
