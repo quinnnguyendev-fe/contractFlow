@@ -38,9 +38,9 @@ function formatDate(date: string) {
 function getStatusVariant(status: ContractStatus) {
   switch (status) {
     case "draft":
-        return "default";
+      return "default";
     case "pending":
-        return "secondary";
+      return "secondary";
     case "active":
       return "outline";
     case "expired":
@@ -57,6 +57,9 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "all">(
     "all",
   );
+
+  const PAGE_SIZE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredContracts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -75,6 +78,14 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
     });
   }, [contracts, search, statusFilter]);
 
+  const totalPages = Math.ceil(filteredContracts.length / PAGE_SIZE);
+
+  const paginatedContracts = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+
+    return filteredContracts.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredContracts, currentPage]);
+
   return (
     <Card>
       <CardHeader>
@@ -86,16 +97,20 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
           <Input
             placeholder="Search by title, contract number, or counterparty..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setCurrentPage(1);
+            }}
             aria-label="Search contracts"
             className="sm: max-w-sm"
           />
 
           <select
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as ContractStatus | "all")
-            }
+            onChange={(e) => {
+              setStatusFilter(e.target.value as ContractStatus | "all");
+              setCurrentPage(1);
+            }}
             aria-label="Filter contractsby status"
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
@@ -125,9 +140,8 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
                 <th className="h-12 px-4 font-medium">End Date</th>
               </tr>
             </thead>
-
             <tbody className="[&_tr:last-child]:border-0">
-              {filteredContracts.map((contract) => (
+              {paginatedContracts.map((contract) => (
                 <tr
                   key={contract.id}
                   className="border-b transition-colors hover:bg-muted/50"
@@ -165,13 +179,41 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
 
               {filteredContracts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <td
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     No contracts found.
                   </td>
                 </tr>
               )}
             </tbody>
+            ``
           </table>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} of {Math.max(totalPages, 1)}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => page - 1)}
+              disabled={currentPage === 1}
+              className="rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => page + 1)}
+              disabled={currentPage >= totalPages}
+              className="rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </CardContent>
     </Card>
