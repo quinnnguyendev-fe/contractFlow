@@ -4,6 +4,7 @@ import { Contract, ContractStatus } from "../lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 interface ContractsTableProps {
   contracts: Contract[];
@@ -35,7 +36,7 @@ function formatDate(date: string) {
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
-function getStatusVariant(status: ContractStatus) {
+export function getStatusVariant(status: ContractStatus) {
   switch (status) {
     case "draft":
       return "default";
@@ -148,7 +149,12 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
                 >
                   <td className="p-4">
                     <div className="space-y-1">
-                      <p className="font-medium">{contract.title}</p>
+                      <Link
+                        href={`/contracts/${contract.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {contract.title}
+                      </Link>
                       <p className="text-xs text-muted-foreground">
                         {contract.contractNumber}
                       </p>
