@@ -28,7 +28,7 @@ function getStatusVariant(status: string) {
     case "pending":
       return "secondary";
     case "expired":
-      return "destructive";
+      return "outline";
     case "terminated":
       return "destructive";
     default:
