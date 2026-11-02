@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
-import { ContractsTable } from "@/features/contracts/components/contracts-table";
-import { mockContracts } from "@/features/contracts/lib/mock-contracts";
+import { Button } from "@/components/ui/button";
+import { ContractsList } from "@/features/contracts/components/contracts-list";
+import Link from "next/link";
 
 export default function ContractsPage() {
   return (
@@ -13,7 +14,14 @@ export default function ContractsPage() {
         </p>
       </div>
 
-      <ContractsTable contracts={mockContracts} />
+      <div className="mt-2">
+        <Link href="/contracts/new">
+          <Button>Create Contract</Button>
+        </Link>
+      </div>
+
+      {/* <ContractsTable contracts={mockContracts} /> */}
+      <ContractsList />
     </AppShell>
   );
 }

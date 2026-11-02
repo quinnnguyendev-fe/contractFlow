@@ -88,7 +88,7 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
   }, [filteredContracts, currentPage]);
 
   return (
-    <Card>
+    <Card className="mt-4">
       <CardHeader>
         <CardTitle>All Contracts</CardTitle>
       </CardHeader>
@@ -127,76 +127,74 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
           Showing {filteredContracts.length} of {contracts.length} contracts
         </p>
 
-        <div className="overflow-x-auto">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="[&_tr]:border-b">
-              <tr className="border-b text-left">
-                <th className="h-12 px-4 font-medium">Contract</th>
-                <th className="h-12 px-4 font-medium">Counterparty</th>
-                <th className="h-12 px-4 font-medium">Status</th>
-                <th className="h-12 px-4 font-medium text-right">
-                  Contract Value
-                </th>
-                <th className="h-12 px-4 font-medium">Start Date</th>
-                <th className="h-12 px-4 font-medium">End Date</th>
+        <table className="w-full caption-bottom text-sm">
+          <thead className="[&_tr]:border-b">
+            <tr className="border-b text-left">
+              <th className="h-12 px-4 font-medium">Contract</th>
+              <th className="h-12 px-4 font-medium">Counterparty</th>
+              <th className="h-12 px-4 font-medium">Status</th>
+              <th className="h-12 px-4 font-medium text-right">
+                Contract Value
+              </th>
+              <th className="h-12 px-4 font-medium">Start Date</th>
+              <th className="h-12 px-4 font-medium">End Date</th>
+            </tr>
+          </thead>
+          <tbody className="[&_tr:last-child]:border-0">
+            {paginatedContracts.map((contract) => (
+              <tr
+                key={contract.id}
+                className="border-b transition-colors hover:bg-muted/50"
+              >
+                <td className="p-4">
+                  <div className="space-y-1">
+                    <Link
+                      href={`/contracts/${contract.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {contract.title}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {contract.contractNumber}
+                    </p>
+                  </div>
+                </td>
+
+                <td className="p-4">{contract.counterparty}</td>
+
+                <td className="p-4">
+                  <Badge variant={getStatusVariant(contract.status)}>
+                    {contract.status}
+                  </Badge>
+                </td>
+
+                <td className="p-4 text-right font-medium">
+                  {formatCurrency(contract.value, contract.currency)}
+                </td>
+
+                <td className="whitespace-nowrap p-4">
+                  {formatDate(contract.startDate)}
+                </td>
+
+                <td className="whitespace-nowrap p-4">
+                  {formatDate(contract.endDate)}
+                </td>
               </tr>
-            </thead>
-            <tbody className="[&_tr:last-child]:border-0">
-              {paginatedContracts.map((contract) => (
-                <tr
-                  key={contract.id}
-                  className="border-b transition-colors hover:bg-muted/50"
+            ))}
+
+            {filteredContracts.length === 0 && (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
                 >
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      <Link
-                        href={`/contracts/${contract.id}`}
-                        className="font-medium hover:underline"
-                      >
-                        {contract.title}
-                      </Link>
-                      <p className="text-xs text-muted-foreground">
-                        {contract.contractNumber}
-                      </p>
-                    </div>
-                  </td>
-
-                  <td className="p-4">{contract.counterparty}</td>
-
-                  <td className="p-4">
-                    <Badge variant={getStatusVariant(contract.status)}>
-                      {contract.status}
-                    </Badge>
-                  </td>
-
-                  <td className="p-4 text-right font-medium">
-                    {formatCurrency(contract.value, contract.currency)}
-                  </td>
-
-                  <td className="whitespace-nowrap p-4">
-                    {formatDate(contract.startDate)}
-                  </td>
-
-                  <td className="whitespace-nowrap p-4">
-                    {formatDate(contract.endDate)}
-                  </td>
-                </tr>
-              ))}
-
-              {filteredContracts.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    No contracts found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            ``
-          </table>
-        </div>
+                  No contracts found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+          ``
+        </table>
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
