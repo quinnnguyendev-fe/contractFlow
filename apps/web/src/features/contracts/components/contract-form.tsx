@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { contractReposiroty } from "../lib/contract-reposiroty";
+import { contractRepository } from "../lib/contract-repository";
 
 interface ContractFormProps {
   mode: "create" | "edit";
@@ -104,7 +104,7 @@ export function ContractForm({
     if (mode === "edit") {
       if (!contractId) return;
 
-      const updatedContract = contractReposiroty.update(contractId, formData);
+      const updatedContract = contractRepository.update(contractId, formData);
 
       if (!updatedContract) return;
       router.push(`/contracts/${contractId}`);
@@ -120,7 +120,7 @@ export function ContractForm({
       updatedAt: now,
     };
 
-    contractReposiroty.create(newContract);
+    contractRepository.create(newContract);
 
     router.push("/contracts");
   }

@@ -1,5 +1,5 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Contract } from "../lib/types";
 import {
   getServerSnapshot,
@@ -11,6 +11,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "../lib/contract-formatters";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { contractRepository } from "../lib/contract-repository";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ContractDetailsProps {
   id: string;
@@ -33,6 +46,8 @@ function getStatusVariant(status: Contract["status"]) {
 }
 
 export function ContractDetails({ id }: ContractDetailsProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
   const contractsJson = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -46,6 +61,20 @@ export function ContractDetails({ id }: ContractDetailsProps) {
   const contracts = JSON.parse(contractsJson) as Contract[];
 
   const contract = contracts.find((item) => item.id === id);
+
+  function handleDelete() {
+    setIsDeleting(true);
+
+    const deleted = contractRepository.delete(id);
+
+    if (deleted) {
+      router.push("/contracts");
+      router.refresh();
+      return;
+    }
+
+    setIsDeleting(false);
+  }
 
   if (!contract) {
     return (
@@ -146,6 +175,34 @@ export function ContractDetails({ id }: ContractDetailsProps) {
         <Link href={`/contracts/${contract.id}/edit`}>
           <Button>Edit Contract</Button>
         </Link>
+
+        <AlertDialog>
+          <AlertDialogTrigger render={<Button variant="destructive" />}>
+            Delete Contract
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this contract?</AlertDialogTitle>
+
+              <AlertDialogDescription>
+                Are you sure you want to delete
+                <strong> {contract.title}</strong>? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { mockContracts } from "./mock-contracts";
 import type { Contract, CreateContractInput } from "./types";
 
 const STORAGE_KEY = "contractflow:contracts";
-export const contractReposiroty = {
+export const contractRepository = {
   getAll(): Contract[] {
     if (typeof window === "undefined") {
       return mockContracts;
@@ -37,7 +37,7 @@ export const contractReposiroty = {
 
     const updatedContracts = contracts.map((contract) =>
       contract.id === id
-        ? { ...contract, ...updates, updated: new Date().toISOString() }
+        ? { ...contract, ...updates, updatedAt: new Date().toISOString() }
         : contract,
     );
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedContracts));
@@ -45,4 +45,20 @@ export const contractReposiroty = {
     window.dispatchEvent(new Event("contractflow:contracts-updated"));
     return updatedContracts.find((contract) => contract.id === id) ?? null;
   },
+
+  delete(id: string): boolean {
+    const contracts = this.getAll()
+
+    const updatedContracts = contracts.filter(contract => contract.id !== id)
+
+    if(updatedContracts.length === contracts.length) return false
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedContracts));
+
+    window.dispatchEvent(
+      new Event("contractflow:contracts-updated")
+    )
+
+    return true
+  }
 };
