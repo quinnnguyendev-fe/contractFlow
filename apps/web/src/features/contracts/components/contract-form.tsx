@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState } from "react";
 import type { Contract, CreateContractInput } from "../lib/types";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { contractReposiroty } from "../lib/contract-reposiroty";
+
+interface ContractFormProps {
+  mode: "create" | "edit";
+  contractId?: string;
+  initialValues?: CreateContractInput;
+}
 
 const initialFormData: CreateContractInput = {
   contractNumber: "",
@@ -21,11 +27,16 @@ const initialFormData: CreateContractInput = {
 
 type ContractFormErrors = Partial<Record<keyof CreateContractInput, string>>;
 
-export function ContractForm() {
-  const [formData, setFormData] =
-    useState<CreateContractInput>(initialFormData);
+export function ContractForm({
+  mode,
+  contractId,
+  initialValues,
+}: ContractFormProps) {
+  const [formData, setFormData] = useState<CreateContractInput>(
+    initialValues || initialFormData,
+  );
   const [errors, setErrors] = useState<ContractFormErrors>({});
-  const router = useRouter()
+  const router = useRouter();
 
   function handleChange(
     field: keyof CreateContractInput,
@@ -86,31 +97,36 @@ export function ContractForm() {
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
-    const isValid = validateForm()
+    if (!validateForm()) return;
 
-    if(!isValid) return
-    
-    const now = new Date().toISOString()
+    if (mode === "edit") {
+      if (!contractId) return;
 
-    const newContract: Contract = {
-        ...formData,
-        id: crypto.randomUUID(),
-        createdAt: now,
-        updatedAt: now
+      const updatedContract = contractReposiroty.update(contractId, formData);
+
+      if (!updatedContract) return;
+      router.push(`/contracts/${contractId}`);
+      return;
     }
 
-    contractReposiroty.create(newContract)
+    const now = new Date().toISOString();
 
-    router.push("/contracts")
+    const newContract: Contract = {
+      ...formData,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    contractReposiroty.create(newContract);
+
+    router.push("/contracts");
   }
 
   return (
-    <form
-      className="space-y-6"
-      onSubmit={handleSubmit}
-    >
+    <form className="space-y-6" onSubmit={handleSubmit}>
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="contractNumber">Contract Number</Label>

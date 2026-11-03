@@ -1,3 +1,4 @@
+"use client";
 import { useSyncExternalStore } from "react";
 import { Contract } from "../lib/types";
 import {
@@ -9,6 +10,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "../lib/contract-formatters";
+import { Button } from "@/components/ui/button";
 
 interface ContractDetailsProps {
   id: string;
@@ -129,16 +131,22 @@ export function ContractDetails({ id }: ContractDetailsProps) {
           <CardTitle>Audit Information</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Created At</p>
-                <p className="font-medium">{formatDate(contract.createdAt)}</p>
-            </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Updated At</p>
-                <p className="font-medium">{formatDate(contract.updatedAt)}</p>
-            </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Created At</p>
+            <p className="font-medium">{formatDate(contract.createdAt)}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Updated At</p>
+            <p className="font-medium">{formatDate(contract.updatedAt)}</p>
+          </div>
         </CardContent>
       </Card>
+
+      <div className="flex items-center gap-2">
+        <Link href={`/contracts/${contract.id}/edit`}>
+          <Button>Edit Contract</Button>
+        </Link>
+      </div>
     </div>
   );
 }
