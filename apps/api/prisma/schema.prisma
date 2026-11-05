@@ -1,0 +1,128 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  memberships Membership[]
+  contracts Contract[]
+  auditLogs AuditLog[]
+}
+
+enum Role {
+  OWNER 
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  memberships   Membership[]
+  approvals     Approval[]
+  auditLogs AuditLog[]
+}
+
+model Membership {
+  id            String    @id @default(uuid())
+  userId        String
+  organizationId String
+  role          Role      @default(MEMBER)
+  createdAt     DateTime  @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+model Contract {
+  id             String         @id @default(uuid())
+  organizationId String
+  contractNumber String
+  title          String
+  counterparty   String
+  contractType   String
+  status         ContractStatus @default(DRAFT)
+  value          Decimal        @db.Decimal(15, 2)
+  currency       String         @default("USD")
+  startDate      DateTime
+  endDate        DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, contractNumber])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+
+  approvals Approval[]
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Approval {
+  id          String          @id @default(uuid())
+  contractId  String      
+  approverId  String
+  status      ApprovalStatus  @default(PENDING)
+  comment     String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  contract  Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  approver  User    @relation(fields: [approverId], references: [id], onDelete: Restrict)
+
+  @@index([approverId, status])
+  @@index([contractId])
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  organizationId  String
+  actorId         String
+  action          String
+  entityType      String
+  entityId        String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, createdAt])
+  @@index([actorId])
+  @@index([entityType, entityId])
+}
