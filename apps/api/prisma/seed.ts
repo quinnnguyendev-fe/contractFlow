@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
+import * as bcrypt from 'bcrypt';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -20,8 +21,15 @@ async function main() {
     },
   });
 
-  await prisma.contract.create({
-    data: {
+  await prisma.contract.upsert({
+    where: {
+      organizationId_contractNumber: {
+        organizationId: organization.id,
+        contractNumber: 'CTR-001',
+      },
+    },
+    update: {},
+    create: {
       organizationId: organization.id,
       contractNumber: 'CTR-001',
       title: 'Software Development Agreement',
@@ -36,14 +44,74 @@ async function main() {
   });
 
   console.log('Seed data inserted successfully');
+
+  const passwordHash = await bcrypt.hash('Password123!', 10);
+
+  const memberUser = await prisma.user.upsert({
+    where: {
+      email: 'member@acme.com',
+    },
+    update: {},
+    create: {
+      email: 'member@acme.com',
+      name: 'Acme Member',
+      passwordHash,
+    },
+  });
+
+  await prisma.membership.upsert({
+    where: {
+      userId_organizationId: {
+        userId: memberUser.id,
+        organizationId: organization.id,
+      },
+    },
+    update: {
+      role: 'MEMBER',
+    },
+    create: {
+      userId: memberUser.id,
+      organizationId: organization.id,
+      role: 'MEMBER',
+    },
+  });
+
+  const user = await prisma.user.upsert({
+    where: {
+      email: 'admin@acme.com',
+    },
+    update: {},
+    create: {
+      email: 'admin@acme.com',
+      name: 'Acme Admin',
+      passwordHash,
+    },
+  });
+
+  await prisma.membership.upsert({
+    where: {
+      userId_organizationId: {
+        userId: user.id,
+        organizationId: organization.id,
+      },
+    },
+    update: {
+      role: 'OWNER',
+    },
+    create: {
+      userId: user.id,
+      organizationId: organization.id,
+      role: 'OWNER',
+    },
+  });
 }
 
 main()
-    .catch(error => {
-        console.error(error)
-        process.exit(1)
-    })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
 
-    .finally(async () => {
-        await prisma.$disconnect()
-    })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

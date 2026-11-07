@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ContractsModule } from './contracts/contracts.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { OrganizationContextService } from './organization/organization-context/organization-context.service.js';
+import { OrganizationModule } from './organization/organization.module.js';
 
 @Module({
   imports: [
@@ -10,6 +13,9 @@ import { ContractsModule } from './contracts/contracts.module.js';
     }),
     PrismaModule,
     ContractsModule,
+    AuthModule,
+    OrganizationModule,
   ],
+  providers: [OrganizationContextService],
 })
 export class AppModule {}
