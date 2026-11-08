@@ -24,7 +24,8 @@ export const ContractStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
   EXPIRED: 'EXPIRED',
-  TERMINATED: 'TERMINATED'
+  TERMINATED: 'TERMINATED',
+  ARCHIVED: 'ARCHIVED'
 } as const
 
 export type ContractStatus = (typeof ContractStatus)[keyof typeof ContractStatus]

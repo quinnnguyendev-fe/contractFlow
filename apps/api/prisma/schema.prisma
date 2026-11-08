@@ -60,6 +60,7 @@ enum ContractStatus {
   ACTIVE
   EXPIRED
   TERMINATED
+  ARCHIVED
 }
 
 model Contract {
