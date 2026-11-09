@@ -7,7 +7,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { ContractCurrency } from '../../constaints/contract-currency.js';
+import { ContractCurrency } from '../../constants/contract-currency.js';
 
 export class UpdateContractDto {
   @IsOptional()

@@ -10,6 +10,8 @@ import { CreateContractDto } from './dto/create-contract.dto/create-contract.dto
 import { UpdateContractDto } from './dto/update-contract.dto/update-contract.dto.js';
 import { QueryContractDto } from './dto/query-contract.dto/query-contract.dto.js';
 import { Prisma } from '../generated/prisma/client.js';
+import { UpdateContractStatusDto } from './dto/update-contract-status.dto/update-contract-status.dto.js';
+import { CONTRACT_STATUS_TRANSITIONS } from './constants/contract-status-transition.js';
 
 @Injectable()
 export class ContractsService {
@@ -228,6 +230,63 @@ export class ContractsService {
 
       return updatedContract;
     });
+  }
+
+  async updateStatus(
+    actorId: string,
+    contractId: string,
+    dto: UpdateContractStatusDto,
+  ) {
+    const organizationIds =
+      await this.organizationContextService.getOrganizationIds(actorId);
+
+    const contract = await this.prisma.contract.findFirst({
+      where: {
+        id: contractId,
+        organizationId: {
+          in: organizationIds,
+        },
+      },
+    });
+
+    if (!contract) {
+      throw new NotFoundException('Contract not found');
+    }
+
+    const allowedTransitions = CONTRACT_STATUS_TRANSITIONS[contract.status];
+    if (!allowedTransitions.includes(dto.status)) {
+      throw new ConflictException(
+        `Cannot change contract status from ${contract.status} to ${dto.status}`,
+      );
+    }
+
+    const updatedContract = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.contract.update({
+        where: {
+          id: contract.id,
+        },
+        data: {
+          status: dto.status,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          organizationId: contract.organizationId,
+          actorId,
+          action: 'CONTRACT_STATUS_CHANGED',
+          entityType: 'Contract',
+          entityId: contract.id,
+          metadata: {
+            fromStatus: contract.status,
+            toStatus: dto.status,
+          },
+        },
+      });
+      return updated;
+    });
+
+    return updatedContract;
   }
 
   async archive(actorId: string, contractId: string) {

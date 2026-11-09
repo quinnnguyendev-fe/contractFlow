@@ -7,7 +7,7 @@ import {
   Min,
 } from 'class-validator';
 import { IsAfterDate } from '../../validators/is-after-date.validator.js';
-import { ContractCurrency } from '../../constaints/contract-currency.js';
+import { ContractCurrency } from '../../constants/contract-currency.js';
 
 export class CreateContractDto {
   @IsString()

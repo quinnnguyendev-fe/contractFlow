@@ -18,6 +18,7 @@ import { Roles } from '../auth/decorators/roles.decorator/roles.decorator.js';
 import { CreateContractDto } from './dto/create-contract.dto/create-contract.dto.js';
 import { UpdateContractDto } from './dto/update-contract.dto/update-contract.dto.js';
 import { QueryContractDto } from './dto/query-contract.dto/query-contract.dto.js';
+import { UpdateContractStatusDto } from './dto/update-contract-status.dto/update-contract-status.dto.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -69,6 +70,17 @@ export class ContractsController {
     @Body() dto: UpdateContractDto,
   ) {
     return this.contractsService.update(request.user.userId, id, dto);
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  updateStatus(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() dto: UpdateContractStatusDto,
+  ) {
+    return this.contractsService.updateStatus(request.user.userId, id, dto);
   }
 
   @Delete(':id')
