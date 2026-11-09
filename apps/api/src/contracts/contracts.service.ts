@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { OrganizationContextService } from '../organization/organization-context/organization-context.service.js';
 import { CreateContractDto } from './dto/create-contract.dto/create-contract.dto.js';
 import { UpdateContractDto } from './dto/update-contract.dto/update-contract.dto.js';
+import { QueryContractDto } from './dto/query-contract.dto/query-contract.dto.js';
+import { Prisma } from '../generated/prisma/client.js';
 
 @Injectable()
 export class ContractsService {
@@ -15,20 +18,76 @@ export class ContractsService {
     private readonly organizationContextService: OrganizationContextService,
   ) {}
 
-  async findAll(userId: string) {
+  async findAll(userId: string, query: QueryContractDto) {
     const organizationIds =
       await this.organizationContextService.getOrganizationIds(userId);
 
-    return this.prisma.contract.findMany({
-      where: {
-        organizationId: {
-          in: organizationIds,
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ContractWhereInput = {
+      organizationId: {
+        in: organizationIds,
+      },
+      ...(query.status
+        ? {
+            status: query.status,
+          }
+        : {
+            status: {
+              not: 'ARCHIVED',
+            },
+          }),
+      ...(query.search
+        ? {
+            OR: [
+              {
+                contractNumber: {
+                  contains: query.search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                title: {
+                  contains: query.search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                counterparty: {
+                  contains: query.search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const [total, contracts] = await this.prisma.$transaction([
+      this.prisma.contract.count({
+        where,
+      }),
+      this.prisma.contract.findMany({
+        where,
+        orderBy: {
+          [query.sortBy ?? 'createdAt']: query.sortOrder ?? 'desc',
         },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      data: contracts,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    };
   }
 
   async findOne(userId: string, contractId: string) {
@@ -118,6 +177,17 @@ export class ContractsService {
 
     if (!contract) {
       throw new NotFoundException('Contract not found');
+    }
+
+    const nextStartDate =
+      dto.startDate !== undefined
+        ? new Date(dto.startDate)
+        : contract.startDate;
+    const nextEndDate =
+      dto.endDate !== undefined ? new Date(dto.endDate) : contract.endDate;
+
+    if (nextEndDate <= nextStartDate) {
+      throw new BadRequestException('EndDate must be after StartDate');
     }
 
     return this.prisma.$transaction(async (tx) => {

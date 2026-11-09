@@ -1,28 +1,44 @@
-import { IsDateString, IsNumber, IsString, Min } from "class-validator";
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Min,
+} from 'class-validator';
+import { IsAfterDate } from '../../validators/is-after-date.validator.js';
+import { ContractCurrency } from '../../constaints/contract-currency.js';
 
 export class CreateContractDto {
-    @IsString()
-    contractNumber: string
+  @IsString()
+  @IsNotEmpty()
+  contractNumber: string;
 
-    @IsString()
-    title: string
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 
-    @IsString()
-    counterparty: string
+  @IsString()
+  @IsNotEmpty()
+  counterparty: string;
 
-    @IsString()
-    contractType: string
+  @IsString()
+  @IsNotEmpty()
+  contractType: string;
 
-    @IsNumber()
-    @Min(0)
-    value: number
+  @IsNumber()
+  @Min(0)
+  value: number;
 
-    @IsString()
-    currency: string
+  @IsEnum(ContractCurrency)
+  currency: ContractCurrency;
 
-    @IsDateString()
-    startDate: string
+  @IsDateString()
+  startDate: string;
 
-    @IsDateString()
-    endDate: string
+  @IsDateString()
+  @IsAfterDate('startDate', {
+    message: 'endDate must be after startDate',
+  })
+  endDate: string;
 }

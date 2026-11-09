@@ -1,16 +1,28 @@
-import { IsDateString, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
+import { ContractCurrency } from '../../constaints/contract-currency.js';
 
 export class UpdateContractDto {
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   title?: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   counterparty?: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   contractType?: string;
 
   @IsOptional()
@@ -19,14 +31,14 @@ export class UpdateContractDto {
   value?: number;
 
   @IsOptional()
-  @IsString()
-  currency?: string;
+  @IsEnum(ContractCurrency)
+  currency?: ContractCurrency;
 
   @IsOptional()
   @IsDateString()
-  startDate?: string
+  startDate?: string;
 
   @IsOptional()
   @IsDateString()
-  endDate?: string
+  endDate?: string;
 }

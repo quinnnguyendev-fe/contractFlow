@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { Role } from '../generated/prisma/enums.js';
 import { Roles } from '../auth/decorators/roles.decorator/roles.decorator.js';
 import { CreateContractDto } from './dto/create-contract.dto/create-contract.dto.js';
 import { UpdateContractDto } from './dto/update-contract.dto/update-contract.dto.js';
+import { QueryContractDto } from './dto/query-contract.dto/query-contract.dto.js';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -33,8 +35,11 @@ export class ContractsController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OWNER, Role.MEMBER, Role.ADMIN, Role.VIEWER)
-  findAll(@Req() request: AuthenticatedRequest) {
-    return this.contractsService.findAll(request.user.userId);
+  findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: QueryContractDto,
+  ) {
+    return this.contractsService.findAll(request.user.userId, query);
   }
 
   @Get(':id')
