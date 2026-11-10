@@ -33,9 +33,9 @@ export class ApprovalService {
       throw new NotFoundException('Contract not found');
     }
 
-    if (contract.status === 'ARCHIVED') {
+    if (contract.status !== 'PENDING') {
       throw new ConflictException(
-        'Cannot create approval for archived contract',
+        'Approvals can only be created for pending contracts',
       );
     }
 
@@ -170,7 +170,7 @@ export class ApprovalService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const update = await tx.approval.update({
+      const updatedApproval = await tx.approval.update({
         where: {
           id: approval.id,
         },
@@ -196,7 +196,61 @@ export class ApprovalService {
         },
       });
 
-      return update
+      if (dto.status === 'APPROVED') {
+        const [totalApprovals, nonApprovedApprovals] = await Promise.all([
+          tx.approval.count({
+            where: {
+              contractId: contract.id,
+            },
+          }),
+
+          tx.approval.count({
+            where: {
+              contractId: contract.id,
+              status: {
+                not: 'APPROVED',
+              },
+            },
+          }),
+        ]);
+
+        if (totalApprovals > 0 && nonApprovedApprovals === 0) {
+          const updatedContract = await tx.contract.update({
+            where: {
+              id: contract.id,
+            },
+            data: {
+              status: 'ACTIVE',
+            },
+          });
+
+          await tx.auditLog.create({
+            data: {
+              organizationId: contract.organizationId,
+              actorId,
+              action: 'CONTRACT_STATUS_CHANGED',
+              entityType: 'Contract',
+              entityId: contract.id,
+              metadata: {
+                contractId: contract.id,
+                fromStatus: contract.status,
+                toStatus: 'ACTIVE',
+                reason: 'ALL_APPROVALS_APPROVED',
+              },
+            },
+          });
+
+          return {
+            contract: updatedContract,
+            approval: updatedApproval,
+          };
+        }
+      }
+
+      return {
+        approval: updatedApproval,
+        contract: null,
+      };
     });
   }
 }

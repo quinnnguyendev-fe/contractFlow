@@ -254,9 +254,16 @@ export class ContractsService {
     }
 
     const allowedTransitions = CONTRACT_STATUS_TRANSITIONS[contract.status];
+
     if (!allowedTransitions.includes(dto.status)) {
       throw new ConflictException(
         `Cannot change contract status from ${contract.status} to ${dto.status}`,
+      );
+    }
+
+    if (contract.status === 'PENDING' && dto.status === 'ACTIVE') {
+      throw new ConflictException(
+        'Contract can only become ACTIVE after all approvals are approved',
       );
     }
 
