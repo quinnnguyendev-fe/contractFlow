@@ -185,7 +185,7 @@ export class ApprovalService {
           organizationId: contract.organizationId,
           actorId,
           action: 'APPROVAL_STATUS_CHANGED',
-          entityType: 'Approval',
+          entityType: 'APPROVAL',
           entityId: approval.id,
           metadata: {
             contractId: contract.id,
