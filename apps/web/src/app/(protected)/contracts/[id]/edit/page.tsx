@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/layout/app-shell";
+
 import { EditContract } from "@/features/contracts/components/edit-contract";
 import { Suspense } from "react";
 
@@ -16,7 +16,6 @@ export default async function EditContractPage({
 }: EditContractPageProps) {
   return (
     <Suspense fallback={<p>Loading edit contract...</p>}>
-      <AppShell>
         <div className="space-y-6">
           <div>
             <h1 className="text-2xl font-semibold">Edit Contract</h1>
@@ -27,7 +26,6 @@ export default async function EditContractPage({
 
           <EditContractContent params={params} />
         </div>
-      </AppShell>
     </Suspense>
   );
 }

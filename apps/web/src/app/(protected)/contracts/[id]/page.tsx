@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/layout/app-shell";
+
 import { ContractDetails } from "@/features/contracts/components/contract-details";
 import { Suspense } from "react";
 
@@ -16,9 +16,7 @@ export default async function ContractDetailsPage({
 }: ContractDetailsPageProps) {
   return (
     <Suspense fallback={<p>Loading contract details...</p>}>
-      <AppShell>
         <ContractDetailContent params={params} />
-      </AppShell>
     </Suspense>
   );
 }

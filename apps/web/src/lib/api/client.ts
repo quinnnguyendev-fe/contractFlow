@@ -16,6 +16,16 @@ export async function apiClient<T>(
         }
     })
 
+    if (response.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+
+      if (window.location.pathname !== "/login") {
+        window.location.replace("/login");
+      }
+
+      throw new Error("Unauthorized");
+    }
+
     if(!response.ok) {
         throw new Error(`API request failed: ${response.status}`)
     }

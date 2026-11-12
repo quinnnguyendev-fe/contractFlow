@@ -1,11 +1,10 @@
-import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { ContractsList } from "@/features/contracts/components/contracts-list";
 import Link from "next/link";
 
 export default function ContractsPage() {
   return (
-    <AppShell>
+    <>
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Contracts</h1>
 
@@ -22,6 +21,6 @@ export default function ContractsPage() {
 
       {/* <ContractsTable contracts={mockContracts} /> */}
       <ContractsList />
-    </AppShell>
+    </>
   );
 }
