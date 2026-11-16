@@ -1,18 +1,12 @@
 "use client";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { Contract } from "../lib/types";
-import {
-  getServerSnapshot,
-  getSnapshot,
-  subscribe,
-} from "../lib/contracts-store";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "../lib/contract-formatters";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { contractRepository } from "../lib/contract-repository";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { archiveContract, getContract } from "@/lib/api/contracts";
 
 interface ContractDetailsProps {
   id: string;
@@ -47,36 +42,49 @@ function getStatusVariant(status: Contract["status"]) {
 
 export function ContractDetails({ id }: ContractDetailsProps) {
   const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const contractsJson = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
-  );
 
-  if (!contractsJson) {
+  const [contract, setContract] = useState<Contract | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  useEffect(() => {
+    async function loadContract() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getContract(id);
+        setContract(data);
+      } catch {
+        setError("Failed to load contract.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadContract();
+  }, [id]);
+  
+  async function handleDelete() {
+    try {
+      setIsDeleting(true);
+
+      await archiveContract(id);
+
+      router.push("/contracts");
+      router.refresh();
+    } catch (err) {
+      console.error("Fail to archive contract:", err);
+      setIsDeleting(false);
+    }
+  }
+
+  if (loading) {
     return <p className="text-muted-foreground">Loading contract...</p>;
   }
 
-  const contracts = JSON.parse(contractsJson) as Contract[];
-
-  const contract = contracts.find((item) => item.id === id);
-
-  function handleDelete() {
-    setIsDeleting(true);
-
-    const deleted = contractRepository.delete(id);
-
-    if (deleted) {
-      router.push("/contracts");
-      router.refresh();
-      return;
-    }
-
-    setIsDeleting(false);
-  }
-
-  if (!contract) {
+  if (error || !contract) {
     return (
       <div className="space-y-4">
         <h1 className="font-bold text-2xl">Contract Not Found</h1>

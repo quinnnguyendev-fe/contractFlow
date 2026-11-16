@@ -25,7 +25,6 @@ export type CreateContractInput = {
   title: string;
   counterparty: string;
   contractType: string;
-  status: ContractStatus;
   value: number;
   currency: string;
   startDate: string;

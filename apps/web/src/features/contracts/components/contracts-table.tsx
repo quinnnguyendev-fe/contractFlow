@@ -33,7 +33,7 @@ function formatDate(date: string) {
     day: "numeric",
     year: "numeric",
     timeZone: "UTC",
-  }).format(new Date(`${date}T00:00:00Z`));
+  }).format(new Date(date));
 }
 
 export function getStatusVariant(status: ContractStatus) {
@@ -103,7 +103,7 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
               setCurrentPage(1);
             }}
             aria-label="Search contracts"
-            className="sm: max-w-sm"
+            className="sm:max-w-sm"
           />
 
           <select
@@ -141,48 +141,49 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
             </tr>
           </thead>
           <tbody className="[&_tr:last-child]:border-0">
-            {paginatedContracts.map((contract) => (
-              <tr
-                key={contract.id}
-                className="border-b transition-colors hover:bg-muted/50"
-              >
-                <td className="p-4">
-                  <div className="space-y-1">
-                    <Link
-                      href={`/contracts/${contract.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {contract.title}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {contract.contractNumber}
-                    </p>
-                  </div>
-                </td>
+            {paginatedContracts.length > 0 ? (
+              paginatedContracts.map((contract) => (
+                <tr
+                  key={contract.id}
+                  className="border-b transition-colors hover:bg-muted/50"
+                >
+                  <td className="p-4">
+                    <div className="space-y-1">
+                      <Link
+                        href={`/contracts/${contract.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {contract.title}
+                      </Link>
 
-                <td className="p-4">{contract.counterparty}</td>
+                      <p className="text-xs text-muted-foreground">
+                        {contract.contractNumber}
+                      </p>
+                    </div>
+                  </td>
 
-                <td className="p-4">
-                  <Badge variant={getStatusVariant(contract.status)}>
-                    {contract.status}
-                  </Badge>
-                </td>
+                  <td className="p-4">{contract.counterparty}</td>
 
-                <td className="p-4 text-right font-medium">
-                  {formatCurrency(contract.value, contract.currency)}
-                </td>
+                  <td className="p-4">
+                    <Badge variant={getStatusVariant(contract.status)}>
+                      {contract.status}
+                    </Badge>
+                  </td>
 
-                <td className="whitespace-nowrap p-4">
-                  {formatDate(contract.startDate)}
-                </td>
+                  <td className="p-4 text-right font-medium">
+                    {formatCurrency(contract.value, contract.currency)}
+                  </td>
 
-                <td className="whitespace-nowrap p-4">
-                  {formatDate(contract.endDate)}
-                </td>
-              </tr>
-            ))}
+                  <td className="whitespace-nowrap p-4">
+                    {formatDate(contract.startDate)}
+                  </td>
 
-            {filteredContracts.length === 0 && (
+                  <td className="whitespace-nowrap p-4">
+                    {formatDate(contract.endDate)}
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td
                   colSpan={6}
@@ -193,7 +194,6 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
               </tr>
             )}
           </tbody>
-          ``
         </table>
 
         <div className="flex items-center justify-between">

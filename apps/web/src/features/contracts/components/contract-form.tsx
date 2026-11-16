@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import type { Contract, CreateContractInput } from "../lib/types";
+import type { CreateContractInput } from "../lib/types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { contractRepository } from "../lib/contract-repository";
+import { createContract, updateContract } from "@/lib/api/contracts";
 
 interface ContractFormProps {
   mode: "create" | "edit";
@@ -18,7 +18,6 @@ const initialFormData: CreateContractInput = {
   title: "",
   counterparty: "",
   contractType: "",
-  status: "draft",
   value: 0,
   currency: "USD",
   startDate: "",
@@ -33,7 +32,7 @@ export function ContractForm({
   initialValues,
 }: ContractFormProps) {
   const [formData, setFormData] = useState<CreateContractInput>(
-    initialValues || initialFormData,
+    initialValues ?? initialFormData,
   );
   const [errors, setErrors] = useState<ContractFormErrors>({});
   const router = useRouter();
@@ -96,7 +95,7 @@ export function ContractForm({
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!validateForm()) return;
@@ -104,25 +103,41 @@ export function ContractForm({
     if (mode === "edit") {
       if (!contractId) return;
 
-      const updatedContract = contractRepository.update(contractId, formData);
+      try {
+        await updateContract(contractId, {
+          title: formData.title,
+          counterparty: formData.counterparty,
+          contractType: formData.contractType,
+          value: formData.value,
+          currency: formData.currency,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+        });
 
-      if (!updatedContract) return;
-      router.push(`/contracts/${contractId}`);
+        router.push(`/contracts/${contractId}`);
+      } catch (error) {
+        console.error("Failed to update contract:", error);
+      }
+
       return;
     }
 
-    const now = new Date().toISOString();
+    try {
+      await createContract({
+        contractNumber: formData.contractNumber,
+        title: formData.title,
+        counterparty: formData.counterparty,
+        contractType: formData.contractType,
+        value: formData.value,
+        currency: formData.currency,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      });
 
-    const newContract: Contract = {
-      ...formData,
-      id: crypto.randomUUID(),
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    contractRepository.create(newContract);
-
-    router.push("/contracts");
+      router.push("/contracts");
+    } catch (error) {
+      console.error("Failed to create contract:", error);
+    }
   }
 
   return (
