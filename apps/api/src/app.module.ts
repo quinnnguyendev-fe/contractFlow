@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { OrganizationContextService } from './organization/organization-context/organization-context.service.js';
 import { OrganizationModule } from './organization/organization.module.js';
 import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
     AuthModule,
     OrganizationModule,
     AuditLogsModule,
+    UsersModule,
   ],
   providers: [OrganizationContextService],
 })
