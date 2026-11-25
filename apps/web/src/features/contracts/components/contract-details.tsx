@@ -18,7 +18,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { archiveContract, getContract } from "@/lib/api/contracts";
+import {
+  archiveContract,
+  getContract,
+  updateContractStatus,
+} from "@/lib/api/contracts";
 
 interface ContractDetailsProps {
   id: string;
@@ -47,6 +51,8 @@ export function ContractDetails({ id }: ContractDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadContract() {
@@ -65,6 +71,28 @@ export function ContractDetails({ id }: ContractDetailsProps) {
 
     loadContract();
   }, [id]);
+
+  async function handleStatusChange(
+    status: "PENDING" | "ACTIVE" | "EXPIRED" | "TERMINATED" | "ARCHIVED",
+  ) {
+    try {
+      setIsUpdatingStatus(true);
+      setStatusError(null);
+
+      const updatedContract = await updateContractStatus(id, status);
+      setContract(updatedContract);
+    } catch (error) {
+      console.error("Failed to update contract status:", error);
+
+      if (error instanceof Error) {
+        setStatusError(error.message);
+      } else {
+        setStatusError("Failed to update contract status.");
+      }
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
   
   async function handleDelete() {
     try {
@@ -183,6 +211,59 @@ export function ContractDetails({ id }: ContractDetailsProps) {
         <Link href={`/contracts/${contract.id}/edit`}>
           <Button>Edit Contract</Button>
         </Link>
+
+        {contract.status === "draft" && (
+          <Button
+            variant="outline"
+            onClick={() => handleStatusChange("PENDING")}
+            disabled={isUpdatingStatus}
+          >
+            {isUpdatingStatus ? "Updating..." : "Submit for Approval"}
+          </Button>
+        )}
+
+        {contract.status === "pending" && (
+          <Button
+            onClick={() => handleStatusChange("ACTIVE")}
+            disabled={isUpdatingStatus}
+          >
+            {isUpdatingStatus ? "Activating..." : "Activate Contract"}
+          </Button>
+        )}
+
+        {contract.status === "active" && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => handleStatusChange("EXPIRED")}
+              disabled={isUpdatingStatus}
+            >
+              {isUpdatingStatus ? "Updating..." : "Mark as Expired"}
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={() => handleStatusChange("TERMINATED")}
+              disabled={isUpdatingStatus}
+            >
+              {isUpdatingStatus ? "Updating..." : "Terminate Contract"}
+            </Button>
+          </>
+        )}
+
+        {["active", "expired", "terminated"].includes(contract.status) && (
+          <Button
+            variant="outline"
+            onClick={() => handleStatusChange("ARCHIVED")}
+            disabled={isUpdatingStatus}
+          >
+            {isUpdatingStatus ? "Archiving..." : "Archive Contract"}
+          </Button>
+        )}
+
+        {statusError && (
+          <p className="w-full text-sm text-destructive">{statusError}</p>
+        )}
 
         <AlertDialog>
           <AlertDialogTrigger render={<Button variant="destructive" />}>

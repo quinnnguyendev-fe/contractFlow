@@ -7,7 +7,7 @@ type ContractStatusApi =
   | "ACTIVE"
   | "EXPIRED"
   | "TERMINATED"
-  | "ACHIVED";
+  | "ARCHIVED";
 
 type ApiContract = {
   id: string;
@@ -78,7 +78,7 @@ function mapContract(contract: ApiContract): Contract {
 }
 
 export async function getContracts(): Promise<Contract[]> {
-  const response = await apiClient<ContractListResponse>('/contracts');
+  const response = await apiClient<ContractListResponse>("/contracts");
 
   return response.data.map(mapContract);
 }
@@ -92,8 +92,8 @@ export async function getContract(id: string): Promise<Contract> {
 export async function createContract(
   payload: CreateContractPayload,
 ): Promise<Contract> {
-  const contract = await apiClient<ApiContract>('/contracts', {
-    method: 'POST',
+  const contract = await apiClient<ApiContract>("/contracts", {
+    method: "POST",
     body: JSON.stringify(payload),
   });
 
@@ -105,7 +105,7 @@ export async function updateContract(
   payload: UpdateContractPayload,
 ): Promise<Contract> {
   const contract = await apiClient<ApiContract>(`/contracts/${id}`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 
@@ -114,7 +114,26 @@ export async function updateContract(
 
 export async function archiveContract(id: string): Promise<Contract> {
   const contract = await apiClient<ApiContract>(`/contracts/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
+  });
+
+  return mapContract(contract);
+}
+
+export type ContractStatusAction =
+  | "PENDING"
+  | "ACTIVE"
+  | "EXPIRED"
+  | "TERMINATED"
+  | "ARCHIVED";
+
+export async function updateContractStatus(
+  id: string,
+  status: ContractStatusAction,
+): Promise<Contract> {
+  const contract = await apiClient<ApiContract>(`/contracts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
   });
 
   return mapContract(contract);

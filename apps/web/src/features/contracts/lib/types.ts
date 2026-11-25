@@ -3,7 +3,8 @@ export type ContractStatus =
   | "pending"
   | "active"
   | "expired"
-  | "terminated";
+  | "terminated"
+  | "archived";
 
 export interface Contract {
   id: string;
