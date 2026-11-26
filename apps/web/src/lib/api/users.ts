@@ -32,7 +32,7 @@ export async function getUsers(): Promise<User[]> {
   return users.map((user) => ({
     id: user.id,
     email: user.email,
-    name: user.name,
+    name: user.name ?? "",
     role: user.memberships[0]?.role ?? "MEMBER",
   }));
 }
@@ -54,7 +54,7 @@ export async function createUser(payload: CreateUserPayload): Promise<User> {
   return {
     id: user.id,
     email: user.email,
-    name: user.name,
+    name: user.name ?? "",
     role: user.memberships[0]?.role ?? "MEMBER",
   };
 }

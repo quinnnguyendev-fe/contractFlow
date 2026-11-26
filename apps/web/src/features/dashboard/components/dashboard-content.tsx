@@ -69,28 +69,32 @@ export function DashboardContent() {
     .slice(0, 5);
 
     return (
-        <div className="space-y-8">
-            <section className="space-y-4">
-                <div>
-                    <h2 className="text-lg font-semibold tracking-tight">Overview</h2>
-                    <p className="text-sm text-muted-foreground">
-                        A summary of your organization's contract activity.
-                    </p>
+      <div className="space-y-8">
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Overview</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              A summary of your organization's contract activity.
+            </p>
 
-                    <ContractStats stats={stats} loading={loading} error={error} />
-                </div>
-            </section>
+            <ContractStats stats={stats} loading={loading} error={error} />
+          </div>
+        </section>
 
-            <section className="space-y-4">
-                <div>
-                    <h2 className="text-lg font-semibold tracking-tight">
-                        Activity
-                    </h2>
-                    <p className="text-sm text-muted-foreground">Keep track of your latest contract updates.</p>
-                </div>
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Activity</h2>
+            <p className="text-sm text-muted-foreground">
+              Keep track of your latest contract updates.
+            </p>
+          </div>
 
-                <RecentContract contracts={recentContracts} loading={loading} error={error}/>
-            </section>
-        </div>
-    )
+          <RecentContract
+            contracts={recentContracts}
+            loading={loading}
+            error={error}
+          />
+        </section>
+      </div>
+    );
 }
