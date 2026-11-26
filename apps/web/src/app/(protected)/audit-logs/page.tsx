@@ -11,7 +11,9 @@ import {
 
 const ACTIONS = [
   "CONTRACT_CREATED",
+  "CONTRACT_UPDATED",
   "CONTRACT_STATUS_CHANGED",
+  "CONTRACT_ARCHIVED",
   "APPROVAL_CREATED",
   "APPROVAL_STATUS_CHANGED",
 ];
@@ -31,7 +33,7 @@ function getActionBadgeClass(action: string) {
     case "CONTRACT_CREATED":
       return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
     case "CONTRACT_STATUS_CHANGED":
-      return "bg-blue-100 text-blue-800 dark:bg-green-900/30 dark:text-green-300";
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
     case "APPROVAL_CREATED":
       return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
     case "APPROVAL_STATUS_CHANGED":
@@ -100,7 +102,9 @@ export default function AuditLogsPage() {
       <div className="rounded-lg border bg-card p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-end">
           <div className="flex-1 space-y-2">
-            <label htmlFor="audit-action">Action</label>
+            <label htmlFor="audit-action" className="text-sm font-medium">
+              Action
+            </label>
 
             <select
               id="audit-action"
@@ -128,7 +132,7 @@ export default function AuditLogsPage() {
               onChange={(e) => (setEntityType(e.target.value), setPage(1))}
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
             >
-              <option>All entities</option>
+              <option value="">All entities</option>
               {ENTITY_TYPES.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -163,7 +167,7 @@ export default function AuditLogsPage() {
               setSortOrder("desc");
               setPage(1);
             }}
-            className="h-9 rounded-md border px-4 text-sm font-medium hover:bg-muted"
+            className="h-9 rounded-md border px-4 text-sm font-medium transition-colors hover:bg-muted"
           >
             RESET
           </button>
@@ -171,14 +175,42 @@ export default function AuditLogsPage() {
       </div>
 
       {loading && (
-        <div className="rounded-lg border p-6 text-sm text-muted-foreground">
-          Loading audit logs...
+        <div className="overflow-hidden rounded-lg border">
+          <div className="border-b bg-muted/40 px-4 py-3">
+            <div className="h-4 w-34 animate-pulse rounded bg-muted" />
+          </div>
+
+          <div className="divide-y">
+            {[1, 2, 3, 4, 5].map((row) => (
+              <div key={row} className="flex items-center gap-4 px-4 py-4">
+                <div className="h-5 w-36 animate-pulse rounded bg-muted" />
+                <div className="h-5 w-24 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-28 animate-pulse rounded bg-muted" />
+                <div className="ml-auto h-8 w-16 animate-pulse rounded bg-muted" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {error && (
-        <div className="rounded-lg border border-destructive/50 p-6 text-sm text-destructive">
-          {error}
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-6">
+          <div className="space-y-1">
+            <p className="font-medium text-destructive">
+              Unable to load audit logs.
+            </p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={loadAuditLogs}
+            className="mt-4 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+          >
+            Try Again
+          </button>
         </div>
       )}
 
@@ -200,12 +232,18 @@ export default function AuditLogsPage() {
               <tbody>
                 {logs.map((log) => (
                   <tr key={log.id} className="border-b last:border-b-0">
-                    <td className="px-4 py-4 font-medium whitespace-nowrap">
-                      {log.action}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-medium ${getActionBadgeClass(log.action)}`}
+                      >
+                        {getActionLabel(log.action)}
+                      </span>
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      {log.entityType}
+                      <span className="rounded-md border px-2.5 py-1 text-xs font-medium">
+                        {log.entityType}
+                      </span>
                     </td>
 
                     <td className="px-4 py-4">
@@ -257,26 +295,34 @@ export default function AuditLogsPage() {
               </tbody>
             </table>
             {totalPages > 1 && (
-              <div className="flex items-center justify-between border-t px-4 py-3">
+              <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Page {page} of {totalPages}
+                  Page{" "}
+                  <span className="font-medium text-foreground">{page}</span> of{" "}
+                  <span className="font-medium text-foreground">
+                    {totalPages}
+                  </span>
                 </p>
 
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    disabled={page === 1}
-                    onClick={() => setPage((current) => current - 1)}
-                    className="rounded-md border px-3 py-1.5 text-sm font-medium disabled:pointer-events-none disabled:opacity-50"
+                    disabled={page <= 1 || loading}
+                    onClick={() =>
+                      setPage((current) => Math.max(1, current - 1))
+                    }
+                    className="rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
                   >
                     Previous
                   </button>
 
                   <button
                     type="button"
-                    disabled={page === totalPages}
-                    onClick={() => setPage((current) => current + 1)}
-                    className="rounded-md border px-3 py-1.5 text-sm font-medium disabled:pointer-events-none disabled:opacity-50"
+                    disabled={page >= totalPages || loading}
+                    onClick={() =>
+                      setPage((current) => Math.min(totalPages, current + 1))
+                    }
+                    className="rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
                   >
                     Next
                   </button>
